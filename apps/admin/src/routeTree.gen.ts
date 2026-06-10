@@ -11,117 +11,195 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
-import { Route as ProductsImport } from './routes/products'
-import { Route as OrdersImport } from './routes/orders'
-import { Route as AboutImport } from './routes/about'
-import { Route as IndexImport } from './routes/index'
+import { Route as SigninImport } from './routes/signin'
+import { Route as MainImport } from './routes/_main'
+import { Route as MainIndexImport } from './routes/_main/index'
+import { Route as MainProductsImport } from './routes/_main/products'
+import { Route as MainOrdersImport } from './routes/_main/orders'
+import { Route as MainCategoriesImport } from './routes/_main/categories'
+import { Route as MainAboutImport } from './routes/_main/about'
 
 // Create/Update Routes
 
-const ProductsRoute = ProductsImport.update({
-  id: '/products',
-  path: '/products',
+const SigninRoute = SigninImport.update({
+  id: '/signin',
+  path: '/signin',
   getParentRoute: () => rootRoute,
 } as any)
 
-const OrdersRoute = OrdersImport.update({
-  id: '/orders',
-  path: '/orders',
+const MainRoute = MainImport.update({
+  id: '/_main',
   getParentRoute: () => rootRoute,
 } as any)
 
-const AboutRoute = AboutImport.update({
-  id: '/about',
-  path: '/about',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const IndexRoute = IndexImport.update({
+const MainIndexRoute = MainIndexImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => MainRoute,
+} as any)
+
+const MainProductsRoute = MainProductsImport.update({
+  id: '/products',
+  path: '/products',
+  getParentRoute: () => MainRoute,
+} as any)
+
+const MainOrdersRoute = MainOrdersImport.update({
+  id: '/orders',
+  path: '/orders',
+  getParentRoute: () => MainRoute,
+} as any)
+
+const MainCategoriesRoute = MainCategoriesImport.update({
+  id: '/categories',
+  path: '/categories',
+  getParentRoute: () => MainRoute,
+} as any)
+
+const MainAboutRoute = MainAboutImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => MainRoute,
 } as any)
 
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexImport
+    '/_main': {
+      id: '/_main'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof MainImport
       parentRoute: typeof rootRoute
     }
-    '/about': {
-      id: '/about'
+    '/signin': {
+      id: '/signin'
+      path: '/signin'
+      fullPath: '/signin'
+      preLoaderRoute: typeof SigninImport
+      parentRoute: typeof rootRoute
+    }
+    '/_main/about': {
+      id: '/_main/about'
       path: '/about'
       fullPath: '/about'
-      preLoaderRoute: typeof AboutImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof MainAboutImport
+      parentRoute: typeof MainImport
     }
-    '/orders': {
-      id: '/orders'
+    '/_main/categories': {
+      id: '/_main/categories'
+      path: '/categories'
+      fullPath: '/categories'
+      preLoaderRoute: typeof MainCategoriesImport
+      parentRoute: typeof MainImport
+    }
+    '/_main/orders': {
+      id: '/_main/orders'
       path: '/orders'
       fullPath: '/orders'
-      preLoaderRoute: typeof OrdersImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof MainOrdersImport
+      parentRoute: typeof MainImport
     }
-    '/products': {
-      id: '/products'
+    '/_main/products': {
+      id: '/_main/products'
       path: '/products'
       fullPath: '/products'
-      preLoaderRoute: typeof ProductsImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof MainProductsImport
+      parentRoute: typeof MainImport
+    }
+    '/_main/': {
+      id: '/_main/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof MainIndexImport
+      parentRoute: typeof MainImport
     }
   }
 }
 
 // Create and export the route tree
 
+interface MainRouteChildren {
+  MainAboutRoute: typeof MainAboutRoute
+  MainCategoriesRoute: typeof MainCategoriesRoute
+  MainOrdersRoute: typeof MainOrdersRoute
+  MainProductsRoute: typeof MainProductsRoute
+  MainIndexRoute: typeof MainIndexRoute
+}
+
+const MainRouteChildren: MainRouteChildren = {
+  MainAboutRoute: MainAboutRoute,
+  MainCategoriesRoute: MainCategoriesRoute,
+  MainOrdersRoute: MainOrdersRoute,
+  MainProductsRoute: MainProductsRoute,
+  MainIndexRoute: MainIndexRoute,
+}
+
+const MainRouteWithChildren = MainRoute._addFileChildren(MainRouteChildren)
+
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/about': typeof AboutRoute
-  '/orders': typeof OrdersRoute
-  '/products': typeof ProductsRoute
+  '': typeof MainRouteWithChildren
+  '/signin': typeof SigninRoute
+  '/about': typeof MainAboutRoute
+  '/categories': typeof MainCategoriesRoute
+  '/orders': typeof MainOrdersRoute
+  '/products': typeof MainProductsRoute
+  '/': typeof MainIndexRoute
 }
 
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/about': typeof AboutRoute
-  '/orders': typeof OrdersRoute
-  '/products': typeof ProductsRoute
+  '/signin': typeof SigninRoute
+  '/about': typeof MainAboutRoute
+  '/categories': typeof MainCategoriesRoute
+  '/orders': typeof MainOrdersRoute
+  '/products': typeof MainProductsRoute
+  '/': typeof MainIndexRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
-  '/': typeof IndexRoute
-  '/about': typeof AboutRoute
-  '/orders': typeof OrdersRoute
-  '/products': typeof ProductsRoute
+  '/_main': typeof MainRouteWithChildren
+  '/signin': typeof SigninRoute
+  '/_main/about': typeof MainAboutRoute
+  '/_main/categories': typeof MainCategoriesRoute
+  '/_main/orders': typeof MainOrdersRoute
+  '/_main/products': typeof MainProductsRoute
+  '/_main/': typeof MainIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/orders' | '/products'
+  fullPaths:
+    | ''
+    | '/signin'
+    | '/about'
+    | '/categories'
+    | '/orders'
+    | '/products'
+    | '/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/orders' | '/products'
-  id: '__root__' | '/' | '/about' | '/orders' | '/products'
+  to: '/signin' | '/about' | '/categories' | '/orders' | '/products' | '/'
+  id:
+    | '__root__'
+    | '/_main'
+    | '/signin'
+    | '/_main/about'
+    | '/_main/categories'
+    | '/_main/orders'
+    | '/_main/products'
+    | '/_main/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  AboutRoute: typeof AboutRoute
-  OrdersRoute: typeof OrdersRoute
-  ProductsRoute: typeof ProductsRoute
+  MainRoute: typeof MainRouteWithChildren
+  SigninRoute: typeof SigninRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  AboutRoute: AboutRoute,
-  OrdersRoute: OrdersRoute,
-  ProductsRoute: ProductsRoute,
+  MainRoute: MainRouteWithChildren,
+  SigninRoute: SigninRoute,
 }
 
 export const routeTree = rootRoute
@@ -134,23 +212,42 @@ export const routeTree = rootRoute
     "__root__": {
       "filePath": "__root.tsx",
       "children": [
-        "/",
-        "/about",
-        "/orders",
-        "/products"
+        "/_main",
+        "/signin"
       ]
     },
-    "/": {
-      "filePath": "index.tsx"
+    "/_main": {
+      "filePath": "_main.tsx",
+      "children": [
+        "/_main/about",
+        "/_main/categories",
+        "/_main/orders",
+        "/_main/products",
+        "/_main/"
+      ]
     },
-    "/about": {
-      "filePath": "about.tsx"
+    "/signin": {
+      "filePath": "signin.tsx"
     },
-    "/orders": {
-      "filePath": "orders.tsx"
+    "/_main/about": {
+      "filePath": "_main/about.tsx",
+      "parent": "/_main"
     },
-    "/products": {
-      "filePath": "products.tsx"
+    "/_main/categories": {
+      "filePath": "_main/categories.tsx",
+      "parent": "/_main"
+    },
+    "/_main/orders": {
+      "filePath": "_main/orders.tsx",
+      "parent": "/_main"
+    },
+    "/_main/products": {
+      "filePath": "_main/products.tsx",
+      "parent": "/_main"
+    },
+    "/_main/": {
+      "filePath": "_main/index.tsx",
+      "parent": "/_main"
     }
   }
 }

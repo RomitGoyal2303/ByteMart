@@ -6,7 +6,7 @@ import {
 	timestamp,
 	varchar,
 } from "drizzle-orm/mysql-core";
-import { customers } from "./users";
+import { customers, users } from "./users";
 
 export const addresses = mysqlTable("addresses", {
 	id: varchar("id", { length: 128 })
@@ -14,7 +14,7 @@ export const addresses = mysqlTable("addresses", {
 		.primaryKey(),
 	customer_id: varchar("customer_id", { length: 128 })
 		.notNull()
-		.references(() => customers.id),
+		.references(() => users.id),
 	address_line1: varchar("address_line1", { length: 255 }).notNull(),
 	address_line2: varchar("address_line2", { length: 255 }),
 	city: varchar("city", { length: 100 }).notNull(),
@@ -27,8 +27,8 @@ export const addresses = mysqlTable("addresses", {
 });
 
 export const addressesRelations = relations(addresses, ({ one }) => ({
-	customer: one(customers, {
+	customer: one(users, {
 		fields: [addresses.customer_id],
-		references: [customers.id],
+		references: [users.id],
 	}),
 }));

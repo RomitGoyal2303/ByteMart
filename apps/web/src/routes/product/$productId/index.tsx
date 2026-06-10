@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -9,68 +9,65 @@ import {
 	BreadcrumbList,
 	BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { Heart, Share2, Minus, Plus, Star, ChevronRight, ShoppingCart } from "lucide-react";
+import { Heart, Share2, Minus, Plus, Star, ChevronRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProductReviews } from "@/features/products/components/product-reviews";
 import { RelatedProducts } from "@/features/products/components/related-product";
 import { useProductById } from "@/features/products/api/get-product-by-id";
 import { useCartStore } from "@/store/cart";
 import { useWishlistStore } from "@/store/wishlist";
-import { toast } from "sonner";
 
 export const Route = createFileRoute("/product/$productId/")({
 	component: ProductPage,
 });
+
 
 function ProductPage() {
 	const { productId } = Route.useParams();
 	const { data } = useProductById({
 		productId,
 	});
-	const { addItem: addToCart, removeItem: removeFromCart, items: cartItems, updateQuantity } = useCartStore();
-	const { toggleItem, items: wishlistItems } = useWishlistStore();
+	const [quantity, setQuantity] = useState(1);
+	const { addItem: addToCart } = useCartStore();
+	const { toggleItem: toggleWishlist, items: wishlistItems } = useWishlistStore();
 	
 	if (!data?.data) return <div>Product not found</div>;
 	const product = data.data;
-
-	const cartItem = cartItems.find(item => item.productId === product.id);
+	
 	const isInWishlist = wishlistItems.some(item => item.id === product.id);
-
-	const handleCartAction = () => {
-		if (cartItem) {
-			removeFromCart(cartItem.id);
-			toast.success("Removed from cart");
-		} else {
-			addToCart({
-				id: product.id,
-				productId: product.id,
-				name: product.name,
-				price: Number(product.price),
-				quantity: 1,
-				maxQuantity: product.stock_quantity,
-				imageUrl: product.image_url || "/placeholder.svg",
-			});
-			toast.success("Added to cart");
-		}
-	};
-
-	const handleWishlistToggle = () => {
-		toggleItem({
+	
+	const handleAddToCart = () => {
+		addToCart({
 			id: product.id,
 			productId: product.id,
 			name: product.name,
-			price: Number(product.price),
+			price: parseFloat(product.price),
 			imageUrl: product.image_url || "/placeholder.svg",
-			category: product.category.name,
-			inStock: product.stock_quantity > 0,
+			quantity: quantity,
+			maxQuantity: product.stock_quantity || 10
 		});
-		toast.success(isInWishlist ? "Removed from wishlist" : "Added to wishlist");
 	};
-
-	const handleQuantityChange = (increment: boolean) => {
-		if (!cartItem) return;
-		const newQuantity = increment ? cartItem.quantity + 1 : cartItem.quantity - 1;
-		updateQuantity(cartItem.id, newQuantity);
+	
+	const handleToggleWishlist = () => {
+		toggleWishlist({
+			id: product.id,
+			productId: product.id,
+			name: product.name,
+			price: parseFloat(product.price),
+			imageUrl: product.image_url || "/placeholder.svg"
+		});
+	};
+	
+	const incrementQuantity = () => {
+		if (quantity < (product.stock_quantity || 10)) {
+			setQuantity(prevQty => prevQty + 1);
+		}
+	};
+	
+	const decrementQuantity = () => {
+		if (quantity > 1) {
+			setQuantity(prevQty => prevQty - 1);
+		}
 	};
 
 	return (
@@ -108,7 +105,6 @@ function ProductPage() {
 			</Breadcrumb>
 
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-				{/* Product Images */}
 				<div>
 					<Suspense
 						fallback={<Skeleton className="w-full aspect-square rounded-lg" />}
@@ -161,28 +157,26 @@ function ProductPage() {
 						<div>
 							<h3 className="text-sm font-medium mb-2">Quantity</h3>
 							<div className="flex items-center border rounded-md w-32">
-								<Button
-									variant="ghost"
-									size="icon"
-									className="h-8 w-8 rounded-none"
-									disabled={!cartItem || cartItem.quantity <= 1}
-									onClick={() => handleQuantityChange(false)}
-								>
-									<Minus className="h-4 w-4" />
-								</Button>
-								<div className="flex-1 text-center">
-									{cartItem?.quantity || 1}
+									<Button 
+										variant="ghost" 
+										size="icon" 
+										className="rounded-none"
+										onClick={decrementQuantity}
+										disabled={quantity <= 1}
+									>
+										<Minus className="h-4 w-4" />
+									</Button>
+									<div className="flex-1 text-center">{quantity}</div>
+									<Button 
+										variant="ghost" 
+										size="icon" 
+										className="rounded-none"
+										onClick={incrementQuantity}
+										disabled={quantity >= (product.stock_quantity || 10)}
+									>
+										<Plus className="h-4 w-4" />
+									</Button>
 								</div>
-								<Button
-									variant="ghost"
-									size="icon"
-									className="h-8 w-8 rounded-none"
-									disabled={!cartItem || cartItem.quantity >= cartItem.maxQuantity}
-									onClick={() => handleQuantityChange(true)}
-								>
-									<Plus className="h-4 w-4" />
-								</Button>
-							</div>
 							<p className="text-sm text-gray-500 mt-1">
 								{product.stock_quantity} items available
 							</p>
@@ -190,35 +184,20 @@ function ProductPage() {
 					</div>
 
 					<div className="flex flex-col sm:flex-row gap-4">
-						<Button 
-							size="lg" 
-							className="flex-1"
-							variant={cartItem ? "destructive" : "default"}
-							onClick={handleCartAction}
-						>
-							{cartItem ? (
-								<>
-									<Minus className="h-5 w-5 mr-2" />
-									Remove from Cart
-								</>
-							) : (
-								<>
-									<ShoppingCart className="h-5 w-5 mr-2" />
-									Add to Cart
-								</>
-							)}
+						<Button size="lg" className="flex-1" onClick={handleAddToCart}>
+							Add to Cart
+						</Button>
+						<Button size="lg" variant="outline" className="flex-1">
+							Buy Now
 						</Button>
 						<Button 
 							size="lg" 
-							variant="outline" 
-							className={`sm:flex-none ${isInWishlist ? 'text-red-500' : ''}`}
-							onClick={handleWishlistToggle}
+							variant={isInWishlist ? "default" : "outline"} 
+							className="sm:flex-none"
+							onClick={handleToggleWishlist}
 						>
-							<Heart 
-								className="h-5 w-5" 
-								fill={isInWishlist ? "currentColor" : "none"} 
-							/>
-							<span className="sr-only">Toggle Wishlist</span>
+							<Heart className={`h-5 w-5 ${isInWishlist ? "fill-current" : ""}`} />
+							<span className="sr-only">Add to Wishlist</span>
 						</Button>
 						<Button size="lg" variant="outline" className="sm:flex-none">
 							<Share2 className="h-5 w-5" />

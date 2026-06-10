@@ -12,6 +12,7 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@bytemart/database": "workspace:*",
     "@bytemart/typescript-config": "workspace:*"
   }
 } 

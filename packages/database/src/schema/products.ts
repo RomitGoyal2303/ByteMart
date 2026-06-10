@@ -6,7 +6,6 @@ import {
 	mysqlTable,
 	text,
 	timestamp,
-	unique,
 	varchar,
 } from "drizzle-orm/mysql-core";
 
@@ -31,7 +30,9 @@ export const products = mysqlTable("products", {
 	category_id: varchar("category_id", { length: 128 }).references(
 		() => categories.id,
 	),
-	image_url: varchar("image_url", { length: 1024 }),
+	rating: decimal("rating", { precision: 3, scale: 2 }).default("0.00"),
+	reviews: int("reviews").default(0),
+	image_url: varchar("image_url", { length: 1024 }).notNull(),
 	created_at: timestamp("created_at").defaultNow(),
 	updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
 });

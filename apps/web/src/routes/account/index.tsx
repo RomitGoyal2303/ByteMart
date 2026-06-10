@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -9,21 +9,23 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-	Package,
-	MapPin,
-	CreditCard,
-	Bell,
-	Settings,
-	LogOut,
-} from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/use-auth";
+import { createFileRoute } from "@tanstack/react-router";
+import {
+	Bell,
+	CreditCard,
+	LogOut,
+	MapPin,
+	Package,
+	Settings,
+} from "lucide-react";
+import { useState } from "react";
+import { useLogout } from "@/features/auth/api/logout";
+import { useNavigate } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/account/")({
 	component: AccountPage,
@@ -70,13 +72,25 @@ const paymentMethods = [
 
 export default function AccountPage() {
 	const [activeTab, setActiveTab] = useState("overview");
-	const { user } = useAuth();
+	const { user, setUser } = useAuth();
+	const navigate = useNavigate();
+
+	console.log(user);
+	
+	const { mutate: logout } = useLogout({
+		mutationConfig: {
+			onSuccess: () => {
+				setUser(null);
+				navigate({ to: "/signin" });
+			},
+		},
+	});
+
 	if (!user) return null;
 
 	return (
 		<div className="container mx-auto px-4 py-8">
 			<div className="flex flex-col md:flex-row gap-8">
-				{/* Sidebar */}
 				<aside className="w-full md:w-1/4">
 					<Card>
 						<CardHeader>
@@ -145,7 +159,11 @@ export default function AccountPage() {
 							</nav>
 						</CardContent>
 						<CardFooter>
-							<Button variant="outline" className="w-full">
+							<Button 
+								variant="outline" 
+								className="w-full" 
+								onClick={() => logout()}
+							>
 								<LogOut className="mr-2 h-4 w-4" />
 								Log out
 							</Button>

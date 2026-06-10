@@ -12,13 +12,24 @@
 				"noUselessFragments": "off"
 			},
 			"correctness": {
+				"noEmptyPattern": "warn",
 				"useExhaustiveDependencies": "off"
 			},
 			"suspicious": {
-				"noExplicitAny": "off"
+				"noExplicitAny": "off",
+				"noImplicitAnyLet": "warn",
+				"noArrayIndexKey": "warn"
 			},
 			"style": {
 				"noNonNullAssertion": "warn"
+			},
+			"a11y": {
+				"useFocusableInteractive": "off",
+				"noSvgWithoutTitle": "warn",
+				"noRedundantAlt": "warn"
+			},
+			"performance": {
+				"noAccumulatingSpread": "warn"
 			}
 		}
 	},

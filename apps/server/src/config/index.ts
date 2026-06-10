@@ -10,6 +10,7 @@ const envSchema = z.object({
 	UPLOADTHING_TOKEN: z.string(),
 	NODE_ENV: z.string().default("development"),
 });
+
 const envVars = envSchema.parse(process.env);
 
 export const PORT = envVars.SERVER_PORT;

@@ -1,12 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Separator } from "@/components/ui/separator";
 import {
 	Card,
 	CardContent,
@@ -15,6 +7,10 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
 	Select,
 	SelectContent,
@@ -22,8 +18,12 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { CreditCard, CheckCircle2, LockIcon, ChevronRight } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 import { useCartStore } from "@/store/cart";
+import { createFileRoute } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
+import { CheckCircle2, ChevronRight, CreditCard, LockIcon } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/checkout/")({
@@ -45,7 +45,9 @@ export default function CheckoutPage() {
 		return (
 			<div className="text-center py-12">
 				<h2 className="text-2xl font-semibold mb-4">Your cart is empty</h2>
-				<p className="text-gray-600 mb-8">Add some items to your cart before checking out.</p>
+				<p className="text-gray-600 mb-8">
+					Add some items to your cart before checking out.
+				</p>
 				<Button asChild>
 					<Link to="/explore">Start Shopping</Link>
 				</Button>
@@ -59,7 +61,7 @@ export default function CheckoutPage() {
 		// 2. Send order to backend
 		// 3. Handle payment processing
 		// 4. Show confirmation
-		
+
 		toast.success("Order placed successfully!");
 		clearCart();
 		// Redirect to order confirmation page
@@ -74,7 +76,6 @@ export default function CheckoutPage() {
 		<div className="container mx-auto px-4 py-8">
 			<h1 className="text-3xl font-bold mb-8">Checkout</h1>
 
-			{/* Checkout Progress */}
 			<div className="mb-8">
 				<div className="flex items-center justify-between max-w-3xl mx-auto">
 					{steps.map((step, index) => (
@@ -113,7 +114,6 @@ export default function CheckoutPage() {
 			</div>
 
 			<div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-				{/* Checkout Form */}
 				<div className="lg:col-span-2">
 					{/* Shipping Step */}
 					{currentStep === "shipping" && (
@@ -380,8 +380,8 @@ export default function CheckoutPage() {
 								<Button variant="outline" onClick={() => goToStep("payment")}>
 									Back to Payment
 								</Button>
-								<Button 
-									className="w-full mt-4" 
+								<Button
+									className="w-full mt-4"
 									size="lg"
 									onClick={handlePlaceOrder}
 								>
@@ -398,7 +398,6 @@ export default function CheckoutPage() {
 							<CardTitle>Order Summary</CardTitle>
 						</CardHeader>
 						<CardContent className="space-y-4">
-							{/* Order Items */}
 							<div className="space-y-4">
 								{items.map((item) => (
 									<div key={item.id} className="flex items-center">
@@ -424,7 +423,6 @@ export default function CheckoutPage() {
 
 							<Separator />
 
-							{/* Order Totals */}
 							<div className="space-y-2 text-sm">
 								<div className="flex justify-between">
 									<span>Subtotal</span>
@@ -450,7 +448,8 @@ export default function CheckoutPage() {
 							<div className="bg-gray-50 p-4 rounded-lg border text-sm mt-4">
 								<p className="font-medium mb-2">Secure Checkout</p>
 								<p className="text-gray-600">
-									Your payment information is securely transmitted using 256-bit encryption.
+									Your payment information is securely transmitted using 256-bit
+									encryption.
 								</p>
 							</div>
 						</CardContent>

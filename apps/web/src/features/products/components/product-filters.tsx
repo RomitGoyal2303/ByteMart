@@ -1,116 +1,119 @@
-import { useState } from "react";
-import { Slider } from "@/components/ui/slider";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
 import {
 	Accordion,
 	AccordionContent,
 	AccordionItem,
 	AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
+import { useCategories } from "@/features/category/api/get-category";
+import type { ProductFilters } from "@bytemart/types";
+import { useState } from "react";
 
-export function ProductFilters() {
-	const [priceRange, setPriceRange] = useState([0, 2000]);
+interface ProductFiltersProps {
+	initialFilters?: ProductFilters;
+	onFiltersChange: (filters: ProductFilters) => void;
+}
 
-	const brands = [
-		{ id: "apple", label: "Apple" },
-		{ id: "samsung", label: "Samsung" },
-		{ id: "sony", label: "Sony" },
-		{ id: "lg", label: "LG" },
-		{ id: "microsoft", label: "Microsoft" },
-		{ id: "dell", label: "Dell" },
-		{ id: "hp", label: "HP" },
-	];
+const CategoryItem = ({ category, selectedCategories, onToggle }: {
+	category: any;
+	selectedCategories: string[];
+	onToggle: (id: string) => void;
+}) => (
+	<div className="space-y-2">
+		<div className="flex items-center space-x-2">
+			<Checkbox
+				id={`category-${category.id}`}
+				checked={selectedCategories.includes(category.id)}
+				onCheckedChange={() => onToggle(category.id)}
+			/>
+			<Label htmlFor={`category-${category.id}`}>{category.name}</Label>
+		</div>
+		{category.children && (
+			<div className="ml-4 space-y-2">
+				{category.children.map((child: any) => (
+					<div key={child.id} className="flex items-center space-x-2">
+						<Checkbox
+							id={`category-${child.id}`}
+							checked={selectedCategories.includes(child.id)}
+							onCheckedChange={() => onToggle(child.id)}
+						/>
+						<Label htmlFor={`category-${child.id}`}>{child.name}</Label>
+					</div>
+				))}
+			</div>
+		)}
+	</div>
+);
 
-	const categories = [
-		{ id: "smartphones", label: "Smartphones" },
-		{ id: "laptops", label: "Laptops & Computers" },
-		{ id: "tvs", label: "TVs & Displays" },
-		{ id: "audio", label: "Audio" },
-		{ id: "wearables", label: "Wearables" },
-		{ id: "cameras", label: "Cameras" },
-		{ id: "gaming", label: "Gaming" },
-	];
+export function ProductFilters({ initialFilters, onFiltersChange }: ProductFiltersProps) {
+	const [priceRange, setPriceRange] = useState([0, 20000]);
+	const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
-	const features = [
-		{ id: "wireless", label: "Wireless" },
-		{ id: "bluetooth", label: "Bluetooth" },
-		{ id: "4k", label: "4K" },
-		{ id: "hdr", label: "HDR" },
-		{ id: "touchscreen", label: "Touchscreen" },
-		{ id: "waterproof", label: "Waterproof" },
-	];
+	const { data: categoriesResponse } = useCategories({});
+	const categories = categoriesResponse?.data?.allCategories ?? [];
+	console.log(categories);
+
+	const handleCategoryToggle = (categoryId: string) => {
+		setSelectedCategories(prev =>
+			prev.includes(categoryId)
+				? prev.filter(id => id !== categoryId)
+				: [...prev, categoryId]
+		);
+	};
+
+	const handleReset = () => {
+		setPriceRange([0, 20000]);
+		setSelectedCategories([]);
+		onFiltersChange({});
+	};
+
+	const handleApply = () => {
+		onFiltersChange({
+			minPrice: priceRange[0],
+			maxPrice: priceRange[1],
+			categoryId: selectedCategories.length > 0 ? selectedCategories[0] : undefined,
+		});
+	};
 
 	return (
 		<div className="bg-white p-4 rounded-lg border">
 			<h2 className="font-semibold text-lg mb-4">Filters</h2>
 
-			<Accordion type="multiple" defaultValue={["price", "brand", "category"]}>
-				{/* Price Range Filter */}
+			<Accordion type="multiple" defaultValue={["price", "categories"]}>
 				<AccordionItem value="price">
 					<AccordionTrigger>Price Range</AccordionTrigger>
 					<AccordionContent>
 						<div className="space-y-4">
 							<Slider
-								defaultValue={[0, 2000]}
-								max={2000}
+								defaultValue={[0, 20000]}
+								max={20000}
 								step={10}
 								value={priceRange}
 								onValueChange={setPriceRange}
 							/>
 							<div className="flex items-center justify-between">
-								<span>${priceRange[0]}</span>
-								<span>${priceRange[1]}</span>
+								<span>Rs {priceRange[0]}</span>
+								<span>Rs {priceRange[1]}</span>
 							</div>
 						</div>
 					</AccordionContent>
 				</AccordionItem>
 
-				{/* Brand Filter */}
-				<AccordionItem value="brand">
-					<AccordionTrigger>Brand</AccordionTrigger>
-					<AccordionContent>
-						<div className="space-y-2">
-							{brands.map((brand) => (
-								<div key={brand.id} className="flex items-center space-x-2">
-									<Checkbox id={`brand-${brand.id}`} />
-									<Label htmlFor={`brand-${brand.id}`}>{brand.label}</Label>
-								</div>
-							))}
-						</div>
-					</AccordionContent>
-				</AccordionItem>
-
 				{/* Category Filter */}
-				<AccordionItem value="category">
-					<AccordionTrigger>Category</AccordionTrigger>
+				<AccordionItem value="categories">
+					<AccordionTrigger>Categories</AccordionTrigger>
 					<AccordionContent>
-						<div className="space-y-2">
+						<div className="space-y-4">
 							{categories.map((category) => (
-								<div key={category.id} className="flex items-center space-x-2">
-									<Checkbox id={`category-${category.id}`} />
-									<Label htmlFor={`category-${category.id}`}>
-										{category.label}
-									</Label>
-								</div>
-							))}
-						</div>
-					</AccordionContent>
-				</AccordionItem>
-
-				{/* Features Filter */}
-				<AccordionItem value="features">
-					<AccordionTrigger>Features</AccordionTrigger>
-					<AccordionContent>
-						<div className="space-y-2">
-							{features.map((feature) => (
-								<div key={feature.id} className="flex items-center space-x-2">
-									<Checkbox id={`feature-${feature.id}`} />
-									<Label htmlFor={`feature-${feature.id}`}>
-										{feature.label}
-									</Label>
-								</div>
+								<CategoryItem
+									key={category.id}
+									category={category}
+									selectedCategories={selectedCategories}
+									onToggle={handleCategoryToggle}
+								/>
 							))}
 						</div>
 					</AccordionContent>
@@ -118,10 +121,12 @@ export function ProductFilters() {
 			</Accordion>
 
 			<div className="mt-6 space-x-2 flex">
-				<Button variant="outline" className="flex-1">
+				<Button variant="outline" className="flex-1" onClick={handleReset}>
 					Reset
 				</Button>
-				<Button className="flex-1">Apply</Button>
+				<Button className="flex-1" onClick={handleApply}>
+					Apply
+				</Button>
 			</div>
 		</div>
 	);

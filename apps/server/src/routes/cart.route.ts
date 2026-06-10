@@ -1,4 +1,4 @@
-import { Router } from "express";
+import express, { type Router } from "express";
 import {
 	addToCart,
 	getCart,
@@ -7,7 +7,7 @@ import {
 } from "../controllers/cart.controller";
 import { authMiddleware } from "../middlewares/auth.middleware";
 
-const router = Router();
+const router: Router = express.Router();
 
 router.use(authMiddleware);
 

@@ -21,6 +21,7 @@ export const Route = createRootRouteWithContext<{
 			"wishlist",
 		];
 		if (!publicRoutes.includes(location.pathname)) {
+			console.log(context.auth.isAuthenticated);
 			if (!context.auth.isAuthenticated) {
 				throw redirect({
 					to: "/signin",

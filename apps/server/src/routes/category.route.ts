@@ -1,10 +1,10 @@
 import express, { type Router } from "express";
 import {
 	createCategory,
-	getCategories,
-	updateCategory,
 	deleteCategory,
+	getCategories,
 	getParentCategories,
+	updateCategory,
 } from "../controllers/category.controller";
 import {
 	adminMiddleware,

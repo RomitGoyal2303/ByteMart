@@ -7,14 +7,14 @@ import {
 	BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
-import { Moon, Sun } from "lucide-react";
-import { useLocation } from "@tanstack/react-router";
 import { useTheme } from "@/hooks/use-theme";
+import { useLocation } from "@tanstack/react-router";
+import { Moon, Sun } from "lucide-react";
 import React from "react";
 
-export default function AppHeader() {
+export  function AppHeader() {
 	const { theme, setTheme } = useTheme();
-    const { pathname } = useLocation();
+	const { pathname } = useLocation();
 	const pathSegments = pathname
 		.split("/")
 		.filter(Boolean)

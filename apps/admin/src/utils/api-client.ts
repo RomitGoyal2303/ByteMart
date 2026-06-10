@@ -1,4 +1,5 @@
-import type { InternalAxiosRequestConfig } from "axios";
+import type { ApiResponse } from "@bytemart/types";
+import type { AxiosError, InternalAxiosRequestConfig } from "axios";
 import Axios from "axios";
 
 function authRequestInterceptor(config: InternalAxiosRequestConfig) {
@@ -14,5 +15,18 @@ export const api = Axios.create({
 
 api.interceptors.request.use(authRequestInterceptor);
 api.interceptors.response.use(
-	(response) => response.data,
+	(response) => {
+		return {
+			...response.data,
+			status: response.status,
+			headers: response.headers,
+		};
+	},
+	(error: AxiosError) => {
+		console.error("API Error:", error.response?.data);
+		return Promise.reject({
+			...(error.response?.data as ApiResponse<unknown>),
+			status: error.response?.status,
+		});
+	},
 );

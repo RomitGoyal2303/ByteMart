@@ -1,18 +1,18 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useCartStore } from '@/store/cart';
-import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Trash2, Minus, Plus } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { useCartStore } from "@/store/cart";
+import { createFileRoute } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
+import { Minus, Plus, Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/cart/")({
 	component: CartPage,
 });
 
-
 export default function CartPage() {
-	const { items, subtotal, shipping, tax, total, updateQuantity, removeItem } = useCartStore();
+	const { items, subtotal, shipping, tax, total, updateQuantity, removeItem } =
+		useCartStore();
 	const hasItems = items.length > 0;
 
 	return (
@@ -66,7 +66,9 @@ export default function CartPage() {
 															size="icon"
 															className="h-8 w-8 rounded-none"
 															disabled={item.quantity <= 1}
-															onClick={() => updateQuantity(item.id, item.quantity - 1)}
+															onClick={() =>
+																updateQuantity(item.id, item.quantity - 1)
+															}
 														>
 															<Minus className="h-3 w-3" />
 														</Button>
@@ -78,7 +80,9 @@ export default function CartPage() {
 															size="icon"
 															className="h-8 w-8 rounded-none"
 															disabled={item.quantity >= item.maxQuantity}
-															onClick={() => updateQuantity(item.id, item.quantity + 1)}
+															onClick={() =>
+																updateQuantity(item.id, item.quantity + 1)
+															}
 														>
 															<Plus className="h-3 w-3" />
 														</Button>

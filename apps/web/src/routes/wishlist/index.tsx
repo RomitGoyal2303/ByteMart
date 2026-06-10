@@ -1,13 +1,12 @@
+import { useCartStore } from "@/store/cart";
+import { useWishlistStore } from "@/store/wishlist";
+import type { WishlistItem } from "@bytemart/types";
 import { createFileRoute } from "@tanstack/react-router";
-import { useWishlistStore } from '@/store/wishlist';
-import { useCartStore } from '@/store/cart';
-import { WishlistItem } from '@bytemart/types';
 
 export const Route = createFileRoute("/wishlist/")({
 	component: WishlistPage,
 });
 
-import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -15,7 +14,8 @@ import {
 	CardFooter,
 	CardHeader,
 } from "@/components/ui/card";
-import { Trash2, ShoppingCart } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { ShoppingCart, Trash2 } from "lucide-react";
 
 // This would typically come from an API or database
 const wishlistItems = [
@@ -87,7 +87,10 @@ export default function WishlistPage() {
 									<div className="text-sm text-gray-500 mb-1">
 										{item.category}
 									</div>
-									<Link to={`/product/${item.productId}`} className="hover:underline">
+									<Link
+										to={`/product/${item.productId}`}
+										className="hover:underline"
+									>
 										<h3 className="text-lg font-semibold">{item.name}</h3>
 									</Link>
 									<div className="mt-2 font-bold text-lg">
@@ -111,8 +114,8 @@ export default function WishlistPage() {
 										<Trash2 className="h-4 w-4 mr-2" />
 										Remove
 									</Button>
-									<Button 
-										size="sm" 
+									<Button
+										size="sm"
 										disabled={!item.inStock}
 										onClick={() => handleAddToCart(item)}
 									>

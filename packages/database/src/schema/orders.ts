@@ -10,7 +10,7 @@ import {
 } from "drizzle-orm/mysql-core";
 import { addresses } from "./addresses";
 import { products } from "./products";
-import { customers } from "./users";
+import { customers, users } from "./users";
 
 export const orders = mysqlTable("orders", {
 	id: varchar("id", { length: 128 })
@@ -18,7 +18,7 @@ export const orders = mysqlTable("orders", {
 		.primaryKey(),
 	customer_id: varchar("customer_id", { length: 128 })
 		.notNull()
-		.references(() => customers.id),
+		.references(() => users.id),
 	status: varchar("status", { length: 50 }).notNull(),
 	total: decimal("total", { precision: 10, scale: 2 }).notNull(),
 	shipping_address_id: varchar("shipping_address_id", {
@@ -45,9 +45,9 @@ export const orderItems = mysqlTable("order_items", {
 });
 
 export const ordersRelations = relations(orders, ({ one, many }) => ({
-	customer: one(customers, {
+	customer: one(users, {
 		fields: [orders.customer_id],
-		references: [customers.id],
+		references: [users.id],
 	}),
 	shippingAddress: one(addresses, {
 		fields: [orders.shipping_address_id],

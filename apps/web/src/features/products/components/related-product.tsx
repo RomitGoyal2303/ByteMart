@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -7,7 +7,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Link } from "@tanstack/react-router";
 
 // This would typically come from an API or database
 const products = [
