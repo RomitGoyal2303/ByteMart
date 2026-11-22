@@ -1,17 +1,28 @@
-# ByteMart — High-Performance Full-Stack E-Commerce Monorepo 🛒
+<div align="center">
 
-> A production-grade, type-safe e-commerce monorepo built with **React 19**, **Vite**, **TanStack Router & Query**, **Node.js/Express**, **TypeScript**, **Drizzle ORM**, and **MySQL**, orchestrated via **Turborepo** and **pnpm workspaces**.
+# ByteMart — High-Performance E-Commerce Monorepo 🛒
+
+**Enterprise-grade, type-safe full-stack e-commerce platform orchestrating storefront, admin back-office, and backend services.**
+
+[![Turborepo](https://img.shields.io/badge/Orchestration-Turborepo-ef4444?style=for-the-badge&logo=turborepo&logoColor=white)](https://turbo.build/)
+[![React 19](https://img.shields.io/badge/Frontend-React_19-61dafb?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![TanStack](https://img.shields.io/badge/State_%26_Routing-TanStack_Router_%26_Query-ff4154?style=for-the-badge&logo=tanstack&logoColor=white)](https://tanstack.com/)
+[![Drizzle ORM](https://img.shields.io/badge/ORM-Drizzle_MySQL-c5f74f?style=for-the-badge&logo=drizzle&logoColor=black)](https://orm.drizzle.team/)
+[![TypeScript](https://img.shields.io/badge/Language-TypeScript_5.7-3178c6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Biome](https://img.shields.io/badge/Linter-Biome_Fast-60a5fa?style=for-the-badge&logo=biome&logoColor=white)](https://biomejs.dev/)
+
+</div>
 
 ---
 
-## 📌 Problem Statement & Architecture Vision
+## 📌 Problem Statement
 
-Modern enterprise e-commerce platforms struggle with technical debt arising from:
-- **Client-Server Contract Drift:** Discrepancies between backend API payloads and frontend state interfaces.
-- **Fragmented Codebases:** Separate repositories for web client, administrative dashboards, and backend services that lead to duplicated types and validation logic.
-- **Sluggish Build Toolchains:** Traditional bundlers and linters that slow developer feedback loops.
+Traditional distributed e-commerce architectures face frequent operational and developer velocity bottlenecks:
+- **Contract & Schema Drift:** Inconsistencies between backend API response formats and client-side TypeScript types result in silent runtime bugs.
+- **Fragmented Codebases:** Separating storefront, admin management, and API services across multiple repositories duplicates data transfer objects (DTOs) and validation schemas.
+- **Slow Tooling & Build Pipelines:** Standard bundling and linting pipelines degrade iteration velocity across multi-package projects.
 
-**ByteMart** solves this with an integrated **Turborepo Monorepo** where the web client, admin panel, and Express backend share a unified database access layer (`@bytemart/database`), common TypeScript definitions (`@bytemart/types`), and ultra-fast tooling powered by **Biome** and **pnpm**.
+**ByteMart** eliminates these problems using an integrated **Turborepo Monorepo** powered by **pnpm workspaces**. The customer storefront (`apps/web`), administrative console (`apps/admin`), and REST server (`apps/server`) share a centralized, type-safe database layer (`@bytemart/database`), common API interfaces (`@bytemart/types`), and high-speed Rust-based linting with **Biome**.
 
 ---
 
@@ -19,126 +30,186 @@ Modern enterprise e-commerce platforms struggle with technical debt arising from
 
 ```mermaid
 flowchart TD
-    subgraph Apps ["Workspaces: Applications"]
-        Web["apps/web\n(React 19 + Vite + TanStack Router/Query)"]
-        Admin["apps/admin\n(Administrative Management Console)"]
-        Server["apps/server\n(Express.js + TypeScript + Zod)"]
+    subgraph ClientLayer ["Applications (apps/)"]
+        Web["apps/web\n(React 19 + Vite + TanStack Router/Query + Zustand)"]
+        Admin["apps/admin\n(Administrative Inventory & Orders Dashboard)"]
+        Server["apps/server\n(Node.js + Express.js + Zod Validation)"]
     end
 
-    subgraph Packages ["Workspaces: Shared Packages"]
-        DB["packages/database\n(Drizzle ORM + Drizzle Kit)"]
+    subgraph PackageLayer ["Shared Workspaces (packages/)"]
         Types["packages/types\n(Shared DTOs & Validation Schemas)"]
-        TSConfig["packages/typescript-config\n(Unified Compiler Configurations)"]
+        DB["packages/database\n(Drizzle ORM + Drizzle Kit Migrations)"]
+        TSConfig["packages/typescript-config\n(Centralized tsconfig presets)"]
     end
 
-    subgraph Infrastructure ["Data & Infrastructure Layer"]
-        MySQL[("MySQL Database\n(InnoDB Engine)")]
-        Docker["Docker Compose\n(Local Container Orchestration)"]
-        UploadThing["UploadThing\n(Cloud Media Asset Storage)"]
+    subgraph StorageLayer ["Persistence & Cloud Infrastructure"]
+        MySQL[("MySQL 8.0 Database\n(InnoDB Relational Engine)")]
+        Docker["Docker Compose\n(Local MySQL Orchestration)"]
+        UploadThing["UploadThing\n(Cloud Product Asset Storage)"]
     end
 
-    Web -->|Consumes DTOs| Types
-    Admin -->|Consumes DTOs| Types
-    Server -->|Consumes DTOs| Types
+    Web -->|Imports DTOs| Types
+    Admin -->|Imports DTOs| Types
+    Server -->|Validates with Zod| Types
 
-    Web -->|Shared TS Config| TSConfig
-    Admin -->|Shared TS Config| TSConfig
-    Server -->|Shared TS Config| TSConfig
-    DB -->|Shared TS Config| TSConfig
+    Web -->|Shared Presets| TSConfig
+    Admin -->|Shared Presets| TSConfig
+    Server -->|Shared Presets| TSConfig
+    DB -->|Shared Presets| TSConfig
 
-    Server -->|Imports Query Layer| DB
-    DB -->|SQL Queries & Migrations| MySQL
-    Docker -.->|Hosts Local Service| MySQL
-    Server -.->|Media Uploads| UploadThing
+    Server -->|Queries via Drizzle| DB
+    DB -->|SQL Queries & Schema Migrations| MySQL
+    Docker -.->|Runs Local Container| MySQL
+    Server -.->|Streams Image Assets| UploadThing
 
-    Web -->|HTTP / JSON via Axios| Server
-    Admin -->|HTTP / JSON via Axios| Server
+    Web -->|HTTP / JSON REST API| Server
+    Admin -->|HTTP / JSON REST API| Server
 ```
 
 ---
 
-## 💻 Tech Stack & Engineering Rationale
+## 🔄 End-to-End Request & Checkout Lifecycle
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Customer
+    participant Web as React Web Storefront
+    participant Server as Express REST API
+    participant Auth as JWT Auth Middleware
+    participant Controller as Order Controller
+    participant DB as Drizzle ORM (MySQL)
+
+    Customer->>Web: Submits Order with Cart Items & Shipping Address
+    Web->>Server: POST /api/orders (Bearer JWT Token, OrderPayload)
+    Server->>Auth: Validate JWT authentication token
+    alt Token Invalid / Expired
+        Auth-->>Web: 401 Unauthorized
+    else Token Valid
+        Auth->>Controller: Forward decoded User context
+        Controller->>DB: Query product stock quantities within MySQL transaction
+        alt Stock Insufficient
+            DB-->>Controller: Stock conflict detected
+            Controller-->>Web: 409 Conflict ("Product out of stock")
+        else Stock Available
+            Controller->>DB: Deduct inventory stock & create Order record
+            DB-->>Controller: Order saved (order_id, status: 'pending')
+            Controller-->>Web: 201 Created (Order Confirmation Details)
+            Web-->>Customer: Display Order Summary & Invoice
+        end
+    end
+```
+
+---
+
+## 💻 Tech Stack & Engineering Decisions
 
 | Layer | Technologies | Rationale |
 | :--- | :--- | :--- |
-| **Monorepo Engine** | Turborepo, pnpm Workspaces | Efficient pipeline caching, parallel task execution, and symlinked workspace dependencies without overhead. |
-| **Web Client (`apps/web`)** | React 19, Vite, TanStack Router, TanStack Query | Client-side routing with type-safe route parameters via TanStack Router; asynchronous server-state synchronization with TanStack Query. |
-| **State & Styling** | Zustand, Tailwind CSS v4, Radix UI | Lightweight, unopinionated client store paired with accessible, headless UI primitives and Tailwind v4. |
-| **Backend API (`apps/server`)** | Node.js, Express.js, TypeScript, Zod | Fast, unopinionated REST API layer with runtime request payload validation using Zod schemas. |
-| **Database & ORM** | MySQL, Drizzle ORM, Drizzle Kit | Type-safe SQL dialect with zero-overhead query compilation, schema declaration in TypeScript, and automated migrations. |
-| **Code Quality & Tooling** | Biome, Husky, Dotenv-CLI | Sub-millisecond formatting and linting via Biome (Rust-based), enforcing pre-commit hygiene with Husky hooks. |
+| **Monorepo Engine** | Turborepo, pnpm Workspaces | Parallel task scheduling, pipeline dependency caching, and zero-duplicate symlinking. |
+| **Storefront Client** | React 19, Vite, TanStack Router | File-based routing with strict URL search parameter validation via TanStack Router; fast HMR with Vite. |
+| **Client State & Data Fetching** | TanStack Query v5, Zustand | Asynchronous server-cache synchronization, automatic retries, and optimistic UI updates paired with lightweight cart state. |
+| **Styling & Design System** | Tailwind CSS v4, Radix UI | Accessible headless primitives with utility-first CSS styling and automated class merging (`clsx`, `tailwind-merge`). |
+| **Backend REST API** | Node.js, Express.js, TypeScript | Clean route-controller-middleware architecture with runtime payload parsing using Zod. |
+| **Database & ORM** | MySQL, Drizzle ORM, Drizzle Kit | Direct-to-SQL compiler with zero runtime overhead, TypeScript schema definitions, and automated database migrations. |
+| **Code Quality & CI/CD** | Biome, Husky, Dotenv-CLI | Sub-millisecond formatting and linting via Rust-based Biome, pre-commit enforcement via Husky hooks. |
 
 ---
 
 ## 🗄️ Relational Database Schema Design
 
-The persistence layer (`packages/database/src/schema`) models a complete commerce lifecycle:
+The relational schema (`packages/database/src/schema`) enforces integrity constraints across users, products, addresses, and orders:
 
 ```mermaid
 erDiagram
     USERS ||--o{ ORDERS : places
     USERS ||--o{ ADDRESSES : owns
-    USERS ||--o{ ENGAGEMENT : creates
+    USERS ||--o{ ENGAGEMENT : writes
     ORDERS ||--|{ ORDER_ITEMS : contains
-    PRODUCTS ||--o{ ORDER_ITEMS : referenced_in
-    PRODUCTS ||--o{ ENGAGEMENT : reviewed_in
+    PRODUCTS ||--o{ ORDER_ITEMS : contains_product
+    PRODUCTS ||--o{ ENGAGEMENT : receives_reviews
 
     USERS {
-        string id PK
-        string email UK
-        string password_hash
-        string role
+        varchar id PK
+        varchar email UK
+        varchar password_hash
+        varchar role
         datetime created_at
     }
     PRODUCTS {
-        string id PK
-        string title
+        varchar id PK
+        varchar title
         decimal price
         int stock_quantity
-        string category
+        varchar category
         json image_urls
     }
     ORDERS {
-        string id PK
-        string user_id FK
+        varchar id PK
+        varchar user_id FK
         decimal total_amount
-        string order_status
+        varchar order_status
         datetime created_at
     }
     ADDRESSES {
-        string id PK
-        string user_id FK
-        string street
-        string city
-        string postal_code
+        varchar id PK
+        varchar user_id FK
+        varchar street
+        varchar city
+        varchar postal_code
+    }
+    ENGAGEMENT {
+        varchar id PK
+        varchar user_id FK
+        varchar product_id FK
+        int rating
+        text review_text
     }
 ```
 
 ---
 
-## 📁 Repository Structure
+## 📡 Core API Specification
+
+| Method | Endpoint | Access Level | Description | Status Codes |
+| :--- | :--- | :--- | :--- | :--- |
+| `POST` | `/api/auth/register` | Public | Register customer account with email/password | `201`, `400` |
+| `POST` | `/api/auth/login` | Public | Authenticate user & return signed JWT cookie | `200`, `401` |
+| `GET` | `/api/products` | Public | Paginated product catalogue with category filters | `200` |
+| `GET` | `/api/products/:id` | Public | Product details with inventory availability | `200`, `404` |
+| `POST` | `/api/products` | Admin | Create product listing with media asset URLs | `201`, `403` |
+| `POST` | `/api/orders` | Customer | Place order with atomic stock validation | `201`, `409` |
+| `GET` | `/api/orders/my` | Customer | Fetch logged-in user order history | `200` |
+| `PATCH` | `/api/orders/:id/status`| Admin | Update order state (`processing`, `shipped`, `delivered`) | `200`, `403` |
+| `POST` | `/api/addresses` | Customer | Add verified shipping address | `201`, `400` |
+
+---
+
+## 📁 Repository Directory Structure
 
 ```
 ByteMart/
 ├── apps/
-│   ├── admin/                    # Administrative back-office interface
+│   ├── admin/                    # Administrative inventory & orders management
+│   │   ├── src/                  # Admin UI components & dashboard views
+│   │   └── package.json
 │   ├── server/                   # Express.js REST API with Zod validation
 │   │   ├── src/
-│   │   │   ├── controllers/      # Route handlers
-│   │   │   ├── middlewares/      # Auth (JWT), request logging, error handling
+│   │   │   ├── controllers/      # Route handler logic (auth, products, orders)
+│   │   │   ├── middlewares/      # JWT auth, error handlers, Winston logger
 │   │   │   ├── routes/           # REST endpoint definitions
-│   │   │   └── utils/            # Winston logger, helpers
+│   │   │   └── utils/            # Winston logger, environment helpers
 │   │   └── package.json
 │   └── web/                      # React 19 customer storefront (Vite + TanStack)
 │       ├── src/
 │       │   ├── routes/           # Type-safe file-based TanStack routes
-│       │   ├── components/       # Radix UI + Tailwind design system
+│       │   ├── components/       # Radix UI + Tailwind design components
 │       │   └── stores/           # Zustand cart and session stores
 │       └── package.json
 ├── packages/
 │   ├── database/                 # Drizzle ORM schemas, migrations, seeders
 │   ├── types/                    # Shared TypeScript interfaces & API contracts
-│   └── typescript-config/        # Base tsconfig presets
+│   └── typescript-config/        # Centralized tsconfig presets
 ├── .husky/                       # Pre-commit git hooks
 ├── biome.json                    # Formatting & linting configuration
 ├── docker-compose.yml            # Local MySQL database container
@@ -153,8 +224,8 @@ ByteMart/
 
 ### Prerequisites
 - **Node.js**: `v18.0.0` or higher
-- **pnpm**: `v9.0.0` (`npm install -g pnpm`)
-- **Docker**: For running local MySQL database (optional if using external instance)
+- **pnpm**: `v9.0.0` or higher (`npm install -g pnpm`)
+- **Docker**: For running local MySQL database
 
 ### 1. Clone & Install Dependencies
 ```bash
@@ -164,36 +235,56 @@ pnpm install
 ```
 
 ### 2. Configure Environment Variables
-Create a `.env` file at the root:
+Create a root `.env` file:
 ```env
 DATABASE_URL=mysql://root:password@localhost:3306/bytemart
-JWT_SECRET=super_secret_jwt_key
+JWT_SECRET=your_super_secret_jwt_key
 PORT=5000
 CLIENT_URL=http://localhost:5173
 ```
 
-### 3. Spin Up Database & Run Migrations
+### 3. Database Ingestion & Migrations
 ```bash
-# Start MySQL in Docker (if using docker-compose)
+# Start MySQL in Docker
 docker-compose up -d
 
-# Generate and apply Drizzle schema migrations
+# Generate Drizzle migration files and push schema to MySQL
 pnpm db:generate
 pnpm db:migrate
 ```
 
-### 4. Start Development Servers
+### 4. Run Development Servers
 ```bash
 pnpm dev
 ```
 - Storefront (`apps/web`): `http://localhost:5173`
-- API Server (`apps/server`): `http://localhost:5000`
+- Backend API (`apps/server`): `http://localhost:5000`
+
+---
+
+## 🔒 Security & Defensive Engineering
+
+- **Type-Safe Validation:** Request payloads are checked at the network boundary with Zod schemas before hitting business logic.
+- **SQL Injection Prevention:** Queries run through Drizzle ORM parameterized prepared statements.
+- **Password Salting:** Passwords hashed with salted bcrypt rounds before persistence.
+- **Stateless Authorization:** Authenticated routes verify cryptographic JWT signatures in HTTP-only cookies.
+- **Environment Isolation:** Zero credentials in source control; `.gitignore` guards all `.env` files.
+
+---
+
+## 📈 Engineering Roadmap
+
+- [ ] **Redis Caching:** Implement distributed cache layer for read-heavy product catalog listings.
+- [ ] **Stripe / Razorpay Payments:** Webhook-driven payment confirmation workflows.
+- [ ] **Elasticsearch / Meilisearch:** Full-text fuzzy search for large inventory catalogs.
+- [ ] **Automated Testing:** End-to-end Playwright tests and Vitest unit coverage.
 
 ---
 
 ## 👨‍💻 Author
 
 **Romit Kumar**
-- Institution: Maulana Azad National Institute of Technology (MANIT), Bhopal
+- Department of Electronics & Communication Engineering
+- Maulana Azad National Institute of Technology (MANIT), Bhopal
 - GitHub: [@RomitGoyal2303](https://github.com/RomitGoyal2303)
 - Email: `romigoyal2004@gmail.com`
